@@ -1,0 +1,3 @@
+.venv/
+firestore/target/firestore-transforms-bundled-0.1.jar
+firestore/target/firestore-transforms-0.1.jar
