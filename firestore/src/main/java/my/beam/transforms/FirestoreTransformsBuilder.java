@@ -47,19 +47,17 @@ import org.apache.beam.sdk.coders.SerializableCoder;
 
 public class FirestoreTransformsBuilder{
 
-  public static class ListDocumentsTransform extends PTransform<PBegin, PCollection<String>> {
+  public static class ReadTransform extends PTransform<PBegin, PCollection<String>> {
 
     final String parent;
     final String collectionId;
     
-
-    public ListDocumentsTransform(String parent, String collectionId) {
+    public ReadTransform(String parent, String collectionId) {
       this.parent = parent;
       this.collectionId = collectionId;
     }
 
-    class ConvertToKVDoFn extends DoFn<Document, String> {
-  
+    class ConvertToStringDoFn extends DoFn<Document, String> {
       @ProcessElement
       public void process(@Element Document input, OutputReceiver<String>o) {
         LinkedHashMap<String,Value> map = new LinkedHashMap<>(input.getFieldsMap());
@@ -89,7 +87,7 @@ public class FirestoreTransformsBuilder{
                                                        .build();
       PCollection<ListDocumentsRequest> listDocumentsRequests = input.apply(Create.of(request).withCoder(SerializableCoder.of(ListDocumentsRequest.class)));
       PCollection<Document> documents = listDocumentsRequests.apply(FirestoreIO.v1().read().listDocuments().build());
-      PCollection<String> documentStrings = documents.apply(ParDo.of(new ConvertToKVDoFn()));
+      PCollection<String> documentStrings = documents.apply(ParDo.of(new ConvertToStringDoFn()));
       return documentStrings;
     }
   }
@@ -105,9 +103,8 @@ public class FirestoreTransformsBuilder{
       this.collectionId = collectionId;
       this.projectId = projectId;
     }
-
     // process to create document from data
-    class ConvertToDocumentDoFn extends DoFn<String, Document> {
+    class ConvertToWriteDoFn extends DoFn<String, Write> {
       public void addField(String key, Map<String, String> map, Map<String, Value>fieldMap){
         // check if Boolean
         if ("true".equalsIgnoreCase(map.get(key)) || "false".equalsIgnoreCase(map.get(key))){
@@ -128,7 +125,7 @@ public class FirestoreTransformsBuilder{
       }
       
       @ProcessElement
-      public void processElement(@Element String input, OutputReceiver<Document> o) {
+      public void processElement(@Element String input, OutputReceiver<Write> o) {
         Map<String, String> map = new Gson().fromJson(input, new TypeToken<HashMap<String, String>>() {}.getType());
         Set<String> keys = map.keySet();
         Map <String, Value> fieldMap = new HashMap<>();
@@ -137,48 +134,35 @@ public class FirestoreTransformsBuilder{
           addField(key, map, fieldMap);
         }
         Document document = Document.newBuilder()
-                                  .setName("projects/" + projectId + "/databases/(default)/documents/" + collectionId + "/" + map.get("id"))
+                                  .setName(parent+ "/" + collectionId + "/" + map.get("id"))
                                   .putAllFields(fieldMap)
                                   .build();
-        o.output(document);
-      }
-    }
-
-    // process to create Write from document
-    class ConvertToWriteDoFn extends DoFn<Document, Write> {
-      @ProcessElement
-      public void processElement(@Element Document input, OutputReceiver<Write> o) {
         Write write = Write.newBuilder()
-          .setUpdate(input)
-          .build();
-      o.output(write);
+                          .setUpdate(document)
+                          .build();
+        o.output(write);
       }
     }
-
-    
 
     @Override
     public PDone expand(PCollection<String> input) {
-      input.apply(ParDo.of(new ConvertToDocumentDoFn()))
-          .apply(ParDo.of(new ConvertToWriteDoFn()))
+      input.apply(ParDo.of(new ConvertToWriteDoFn()))
           .apply(FirestoreIO.v1().write().batchWrite().build());
       return PDone.in(input.getPipeline());
     }
   }
   
-  public static class FirestoreListDocumentsBuilder implements
-      ExternalTransformBuilder<FirestoreTransformsConfiguration, PBegin, PCollection<String>> {
-
+  public static class FirestoreReadBuilder implements
+    ExternalTransformBuilder<FirestoreTransformsConfiguration, PBegin, PCollection<String>> {
     @Override
     public PTransform<PBegin, PCollection<String>> buildExternal(
       FirestoreTransformsConfiguration configuration) {
-        return new ListDocumentsTransform(configuration.parent, configuration.collectionId);
+        return new ReadTransform(configuration.parent, configuration.collectionId);
     }
   }
   
   public static class FirestoreWriteBuilder implements
-      ExternalTransformBuilder<FirestoreTransformsConfiguration, PCollection<String>, PDone> {
-  
+    ExternalTransformBuilder<FirestoreTransformsConfiguration, PCollection<String>, PDone> {
     @Override
     public PTransform<PCollection<String>, PDone> buildExternal(
       FirestoreTransformsConfiguration configuration) {

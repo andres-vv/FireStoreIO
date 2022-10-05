@@ -1,12 +1,11 @@
 my/beam/transforms/FirestoreTransformsBuilder$WriteTransform.class
-my/beam/transforms/FirestoreTransformsBuilder$FirestoreListDocumentsBuilder.class
+my/beam/transforms/FirestoreTransformsBuilder$ReadTransform.class
 META-INF/services/org.apache.beam.sdk.expansion.ExternalTransformRegistrar
 my/beam/transforms/FirestoreTransformsConfiguration.class
+my/beam/transforms/FirestoreTransformsBuilder$WriteTransform$ConvertToWriteDoFn$1.class
 my/beam/transforms/FirestoreTransformsRegistrar.class
 my/beam/transforms/FirestoreTransformsBuilder$WriteTransform$ConvertToWriteDoFn.class
-my/beam/transforms/FirestoreTransformsBuilder$WriteTransform$ConvertToDocumentDoFn$1.class
 my/beam/transforms/FirestoreTransformsBuilder.class
 my/beam/transforms/FirestoreTransformsBuilder$FirestoreWriteBuilder.class
-my/beam/transforms/FirestoreTransformsBuilder$ListDocumentsTransform$ConvertToKVDoFn.class
-my/beam/transforms/FirestoreTransformsBuilder$WriteTransform$ConvertToDocumentDoFn.class
-my/beam/transforms/FirestoreTransformsBuilder$ListDocumentsTransform.class
+my/beam/transforms/FirestoreTransformsBuilder$ReadTransform$ConvertToStringDoFn.class
+my/beam/transforms/FirestoreTransformsBuilder$FirestoreReadBuilder.class
