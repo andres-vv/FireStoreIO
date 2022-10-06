@@ -5,43 +5,22 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.beam.sdk.transforms.PTransform;
-import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PDone;
 import org.json.JSONObject;
-import org.apache.arrow.flatbuf.Bool;
-import org.apache.beam.repackaged.core.org.apache.commons.lang3.RandomStringUtils;
-import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.transforms.ExternalTransformBuilder;
 import org.apache.beam.sdk.io.gcp.firestore.FirestoreIO;
-import org.apache.beam.sdk.io.gcp.firestore.FirestoreV1;
 
 import com.google.firestore.v1.ListDocumentsRequest;
-import com.google.firestore.v1.ListDocumentsResponse;
-import com.google.firestore.v1.ListCollectionIdsRequest;
-import com.google.firestore.v1.ListCollectionIdsResponse;
-import com.google.firestore.v1.BatchGetDocumentsRequest;
-import com.google.firestore.v1.BatchGetDocumentsResponse;
-import com.google.firestore.v1.RunQueryRequest;
-import com.google.firestore.v1.RunQueryResponse;
-import com.google.firestore.v1.PartitionQueryRequest;
 import com.google.firestore.v1.Document;
 import com.google.firestore.v1.Value;
-import com.google.firestore.v1.DocumentChange;
 import com.google.firestore.v1.Write;
 import com.google.gson.Gson;
-import com.google.api.client.json.GenericJson;
 import com.google.common.reflect.TypeToken;
-import com.google.protobuf.Descriptors.FieldDescriptor;
-
-import org.apache.beam.sdk.io.gcp.firestore.FirestoreV1.WriteSuccessSummary;
-import org.apache.beam.sdk.io.gcp.firestore.FirestoreV1.ListDocuments;
 
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.coders.SerializableCoder;
 
@@ -96,12 +75,10 @@ public class FirestoreTransformsBuilder{
 
     final String parent;
     final String collectionId;
-    final String projectId;
 
-    public WriteTransform(String parent, String collectionId, String projectId) {
+    public WriteTransform(String parent, String collectionId) {
       this.parent = parent;
       this.collectionId = collectionId;
-      this.projectId = projectId;
     }
     // process to create document from data
     class ConvertToWriteDoFn extends DoFn<String, Write> {
@@ -166,50 +143,8 @@ public class FirestoreTransformsBuilder{
     @Override
     public PTransform<PCollection<String>, PDone> buildExternal(
       FirestoreTransformsConfiguration configuration) {
-        return new WriteTransform(configuration.parent, configuration.collectionId, configuration.projectId);
+        return new WriteTransform(configuration.parent, configuration.collectionId);
     }
   }
-
-  // public static class FirestoreListCollectionIdsBuilder implements
-  //     ExternalTransformBuilder<FirestoreTransformsConfiguration, PCollection<ListCollectionIdsRequest>, PCollection<String>> {
-  
-  //   @Override
-  //   public PTransform<PCollection<ListCollectionIdsRequest>, PCollection<String>> buildExternal(
-  //     FirestoreTransformsConfiguration configuration) {
-  //     return FirestoreIO.v1().read().listCollectionIds().build();
-  //   }
-  // }
-
-  // public static class FirestoreBatchGetDocumentsBuilder implements
-  //     ExternalTransformBuilder<FirestoreTransformsConfiguration, PCollection<BatchGetDocumentsRequest>, PCollection<BatchGetDocumentsResponse>> {
-  
-  //   @Override
-  //   public PTransform<PCollection<BatchGetDocumentsRequest>, PCollection<BatchGetDocumentsResponse>> buildExternal(
-  //     FirestoreTransformsConfiguration configuration) {
-  //     return FirestoreIO.v1().read().batchGetDocuments().build();
-  //   }
-  // }
-
-  // public static class FirestoreRunQueryBuilder implements
-  //     ExternalTransformBuilder<FirestoreTransformsConfiguration, PCollection<RunQueryRequest>, PCollection<RunQueryResponse>> {
-  
-  //   @Override
-  //   public PTransform<PCollection<RunQueryRequest>, PCollection<RunQueryResponse>> buildExternal(
-  //     FirestoreTransformsConfiguration configuration) {
-  //     return FirestoreIO.v1().read().runQuery().build();
-  //   }
-  // }
-
-  // public static class FirestorePartitionQueryBuilder implements
-  //     ExternalTransformBuilder<FirestoreTransformsConfiguration, PCollection<PartitionQueryRequest>, PCollection<RunQueryRequest>> {
-  
-  //   @Override
-  //   public PTransform<PCollection<PartitionQueryRequest>, PCollection<RunQueryRequest>> buildExternal(
-  //     FirestoreTransformsConfiguration configuration) {
-  //     return FirestoreIO.v1().read().partitionQuery().build();
-  //   }
-  // }
-
-  
 }
 

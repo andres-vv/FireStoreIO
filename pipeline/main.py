@@ -6,6 +6,7 @@ from apache_beam.transforms.external import ImplicitSchemaPayloadBuilder
 
 def run():
     """Main function that defines pipeline and runs it."""
+    # Configure your personal pipeline options
     pipeline_options = get_pipeline_options(**vars(args))
     with beam.Pipeline(options=pipeline_options) as pipeline:
         (pipeline
@@ -18,8 +19,7 @@ def run():
          | 'FirestoreWrite' >> beam.ExternalTransform(
                     'my.beam.transform.firestore_write',
                     ImplicitSchemaPayloadBuilder({'parent': f'projects/{args.project}/databases/(default)/documents',
-                                                  'collectionId': 'stack-overflow-comments2',
-                                                  'projectId': args.project}),
+                                                  'collectionId': 'stack-overflow-comments2'}),
                     "localhost:12345")
          )
 
