@@ -4,25 +4,24 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.beam.sdk.coders.SerializableCoder;
+import org.apache.beam.sdk.io.gcp.firestore.FirestoreIO;
+import org.apache.beam.sdk.transforms.Create;
+import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.ExternalTransformBuilder;
 import org.apache.beam.sdk.transforms.PTransform;
-import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PBegin;
+import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PDone;
 import org.json.JSONObject;
-import org.apache.beam.sdk.transforms.ExternalTransformBuilder;
-import org.apache.beam.sdk.io.gcp.firestore.FirestoreIO;
 
-import com.google.firestore.v1.ListDocumentsRequest;
+import com.google.common.reflect.TypeToken;
 import com.google.firestore.v1.Document;
+import com.google.firestore.v1.ListDocumentsRequest;
 import com.google.firestore.v1.Value;
 import com.google.firestore.v1.Write;
 import com.google.gson.Gson;
-import com.google.common.reflect.TypeToken;
-
-import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.Create;
-import org.apache.beam.sdk.coders.SerializableCoder;
 
 public class FirestoreTransformsBuilder{
 
@@ -111,7 +110,7 @@ public class FirestoreTransformsBuilder{
           addField(key, map, fieldMap);
         }
         Document document = Document.newBuilder()
-                                  .setName(parent+ "/" + collectionId + "/" + map.get("id"))
+                                  .setName(parent+ "/" + collectionId + "/" + map.get("Name"))
                                   .putAllFields(fieldMap)
                                   .build();
         Write write = Write.newBuilder()
