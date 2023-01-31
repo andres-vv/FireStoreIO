@@ -21,7 +21,7 @@ def run():
              ImplicitSchemaPayloadBuilder({'parent': f'projects/{args.project}/databases/(default)/documents',
                                            'collectionId': 'Pokedex'}),
              "localhost:12345")
-         | 'Do something' >> beam.ParDo(
+         | 'Level Up' >> beam.ParDo(
              LevelUp(args.gained_levels, args.pokemon)).with_output_types(str)
          | 'FirestoreWrite' >> beam.ExternalTransform(
              'my.beam.transform.firestore_write',
