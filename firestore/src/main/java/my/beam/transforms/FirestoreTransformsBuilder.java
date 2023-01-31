@@ -3,7 +3,6 @@ package my.beam.transforms;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.beam.sdk.coders.SerializableCoder;
 import org.apache.beam.sdk.io.gcp.firestore.FirestoreIO;
@@ -41,32 +40,36 @@ public class FirestoreTransformsBuilder {
       public void process(@Element Document input, OutputReceiver<String> o) {
         LinkedHashMap<String, Value> map = new LinkedHashMap<>(input.getFieldsMap());
         LinkedHashMap<String, Object> newMap = new LinkedHashMap<String, Object>();
-        Set<String> keys = map.keySet();
-        for (String key : keys) {
-          String type = map.get(key).toString();
-          Object value = new Object();
-          if (type.contains("integer")) {
-            value = map.get(key).getIntegerValue();
-          } else if (type.contains("boolean")) {
-            value = map.get(key).getBooleanValue();
-          } else {
-            value = map.get(key).getStringValue();
-          }
-          newMap.put(key, value);
-        }
+        // Extract values from Document Values in Primitive Types
+        newMap.put("Atk", map.get("Atk").getIntegerValue());
+        newMap.put("Def", map.get("Def").getIntegerValue());
+        newMap.put("HP", map.get("HP").getIntegerValue());
+        newMap.put("Level", map.get("Level").getIntegerValue());
+        newMap.put("Name", map.get("Name").getStringValue());
+        newMap.put("Nature", map.get("Nature").getStringValue());
+        newMap.put("Sp. Atk", map.get("Sp. Atk").getIntegerValue());
+        newMap.put("Sp. Def", map.get("Sp. Def").getIntegerValue());
+        newMap.put("Speed", map.get("Speed").getIntegerValue());
+        newMap.put("Type1", map.get("Type1").getStringValue());
+        newMap.put("Type2", map.get("Type2").getStringValue());
+        // Convert to JSON String to comply with Beam Encoder datatypes
         o.output(new JSONObject(newMap).toString());
       }
     }
 
     @Override
     public PCollection<String> expand(PBegin input) {
+      // Create Request
       ListDocumentsRequest request = ListDocumentsRequest.newBuilder()
           .setParent(this.parent)
           .setCollectionId(this.collectionId)
           .build();
+      // Make PCollections of ListDocumentsRequest
       PCollection<ListDocumentsRequest> listDocumentsRequests = input
           .apply(Create.of(request).withCoder(SerializableCoder.of(ListDocumentsRequest.class)));
+      // Collect Documents
       PCollection<Document> documents = listDocumentsRequests.apply(FirestoreIO.v1().read().listDocuments().build());
+      // Convert to JSON String
       PCollection<String> documentStrings = documents.apply(ParDo.of(new ConvertToStringDoFn()));
       return documentStrings;
     }

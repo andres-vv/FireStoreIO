@@ -1,5 +1,6 @@
 import json
 import math
+import logging
 
 import apache_beam as beam
 
@@ -44,6 +45,7 @@ class LevelUp(beam.DoFn):
 
     def process(self, element):
         element = json.loads(element)
+        logging.info(element)
         if element['Name'] == self.pokemon:
             element['Level'] = int(element['Level']) + self.gained_levels
             element = self.update_stats(element)
